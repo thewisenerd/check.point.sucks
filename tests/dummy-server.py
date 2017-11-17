@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # copyright (c) 2017 thewisenerd <thewisenerd@protonmail.com>
@@ -17,6 +17,10 @@ import json
 from binascii import hexlify
 from binascii import unhexlify
 import hashlib
+import time
+
+def currentms():
+	return int(round(time.time() * 1000))
 
 hashtable = (
 	# dummy:dummy
@@ -25,6 +29,8 @@ hashtable = (
 
 (pubk, privk) = rsa.newkeys(1024, exponent=0x11)
 logintoken = hexlify(os.urandom(8)).decode('utf-8')
+gentime = currentms()
+(loginok, logintime) = (False, 0)
 
 def getsha256(s):
 	m = hashlib.sha256()
@@ -36,12 +42,31 @@ def revStrEncode(s):
 		s = "".join([s[i:i+2] for i in range(len(s)-2, -2, -2)])
 	return s
 
+@app.route('/GetStateAndView')
+def stateandview():
+	global loginok, logintime
+
+	ok = {
+		'view': 'Final'
+	}
+
+	auth = {
+		'view': 'Authentication'
+	}
+
+	if loginok and (currentms() - logintime < (250 * 1000)):
+		return json.dumps(ok)
+
+	return json.dumps(auth)
+
 @app.route('/RSASettings')
 def rsa_settings():
-	global pubk, privk, logintoken
+	global pubk, privk, logintoken, gentime, loginok, logintime
 
 	(pubk, privk) = rsa.newkeys(1024, exponent=0x11)
 	logintoken = hexlify(os.urandom(8)).decode('utf-8')
+	gentime = currentms()
+	loginok = False
 
 	payload = {
 		'm': '%0256x' % pubk.n,
@@ -53,13 +78,44 @@ def rsa_settings():
 
 @app.route('/Login', methods=['POST'])
 def login():
-	global pubk, privk, logintoken, hashtable
+	global pubk, privk, logintoken, gentime, hashtable, loginok, logintime
 
-	ret = {
-		'status': 'FAILURE'
+	loginok = False
+
+	auth_failure = {
+		"context":"",
+		"type":"AUTH_FAILURE",
+		"message":"Username or password incorrect",
+		"opaque":"",
+		"nextStateId":""
 	}
 
-	# print(request.form)
+	failure = {
+		"context":"",
+		"type":"FAILURE",
+		"message":"Login failed. If the problem persists please contact your administrator",
+		"opaque":"",
+		"nextStateId":""
+	}
+
+	session_failure = {
+		"context":"",
+		"type":"SESSION_FAILURE",
+		"message":"Your session has expired. Please try again",
+		"opaque":"",
+		"nextStateId":""
+	}
+
+	success = {
+		"context":"",
+		"type":"SUCCESS",
+		"message":"",
+		"opaque":"",
+		"nextStateId":"",
+		"orgUrl":"",
+		"keepAliveActive":False,
+		"delayInterval":"250"
+	}
 
 	if 'realm' not in request.form:
 		return json.dumps(ret)
@@ -69,27 +125,26 @@ def login():
 		return json.dumps(ret)
 
 	if request.form['realm'] != 'passwordRealm':
-		return json.dumps(ret)
+		return json.dumps(failure)
 
 	username = request.form['username']
 	password = request.form['password']
-
 
 	decrypted = rsa.decrypt(unhexlify(revStrEncode(password)), privk).decode('utf-8')
 	token = decrypted[0:16]
 
 	if (token != logintoken):
-		# todo; post login expired/? here?
-		# todo; keep track of time here?
-		logintoken = hexlify(os.urandom(8)).decode('utf-8')
-		return json.dumps(ret)
+		return json.dumps(failure)
+
+	if (currentms() - gentime > (250 * 1000)):
+		return json.dumps(session_failure)
 
 	if getsha256( username + ':' + decrypted[16:] ) in hashtable:
-		ret['status'] = 'SUCCESS'
+		loginok = True
+		logintime = currentms()
+		return json.dumps(success)
 
-	return json.dumps(ret)
+	return json.dumps(auth_failure)
 
 if __name__ == '__main__':
-	print(pubk.n)
-	print(pubk.e)
 	app.run()
