@@ -230,6 +230,8 @@ int do_login(struct checkpoint_vars_t *vars, struct checkpoint_session_vars_t *s
 
 	/* fetch curl */
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	fetch.memory = malloc(1);
+	fetch.size = 0;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&fetch);
 
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
