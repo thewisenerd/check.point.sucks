@@ -7,10 +7,9 @@ LDFLAGS += $(shell pkg-config --libs libcurl json-c openssl)
 SRC := src/main.c \
 	src/check.point.sucks.c
 
-.build:
+build:
 	@mkdir -p out
-
-default: .build
 	$(CC) $(CFLAGS) $(SRC) -o out/check.point.sucks $(LDFLAGS)
 
-
+clean:
+	@rm -rf out/
