@@ -8,25 +8,47 @@
 #ifndef __CHECK_POINT_SUCKS_H__
 #define __CHECK_POINT_SUCKS_H__ /* hehe */
 
-#define CHECKPOINT_BASE_URL "http://127.0.0.1:5000"
-#define CHECKPOINT_PORTALMAIN_URL "/PortalMain"
+#define RSTR(x) (#x)
+#define STR(x) RSTR(x)
+#define ROUND_UP(N, S) ((((N) + (S) - 1) / (S)) * (S))
+
+#define CHECKPOINT_CONFIG_URL_LEN_MAX 2048-1
+#define CHECKPOINT_CONFIG_USERNAME_LEN_MAX 64-1
+#define CHECKPOINT_CONFIG_PASSWORD_LEN_MAX 112-1
+#define CHECKPOINT_CONFIG_LOGINTOKEN_LEN 16
+
+#define CHECKPOINT_CONFIG_PUBKEY_LEN 128
+
+#define CHECKPOINT_CONFIG_DEFAULT_BASE_URL "http://127.0.0.1:5000"
+#define CHECKPOINT_CONFIG_CURLOPT_TIMEOUT 5L
+
+#define CHECKPOINT_CONFIG_LOGINSTR_FAILURE "FAILURE"
+#define CHECKPOINT_CONFIG_LOGINSTR_SESSION_FAILURE "SESSION_FAILURE"
+#define CHECKPOINT_CONFIG_LOGINSTR_AUTH_FAILURE "AUTH_FAILURE"
+#define CHECKPOINT_CONFIG_LOGINSTR_SUCCESS "SUCCESS"
+
+#define CHECKPOINT_CONFIG_VIEWSTR_FINAL "Final"
+#define CHECKPOINT_CONFIG_VIEWSTR_AUTH "Authentication"
+
+#define CHECKPOINT_CONFIG_PAYLOAD_MAX \
+	  29 /* strlen("realm=passwordRealm&username=") */ \
+	+ CHECKPOINT_CONFIG_USERNAME_LEN_MAX \
+	+ 10 /* strlen("&password=") */ \
+	+ (CHECKPOINT_CONFIG_PUBKEY_LEN*2)
+
 #define CHECKPOINT_RSASETTINGS_URL "/RSASettings"
 #define CHECKPOINT_GETSTATEANDVIEW_URL "/GetStateAndView"
 #define CHECKPOINT_LOGIN_URL "/Login"
 
-#include <openssl/rsa.h>
-
 struct checkpoint_vars_t {
-	char loginToken[16+1];
-	RSA *rsa;
-	BIGNUM *n;
-	BIGNUM *e;
-
-	char username[15+1];
-	char password[128-16 /* - padding */ + 1];
-	char encrypted[128+1];
-	char payload[(128*2)+1];
-	char send[1024];
+	unsigned int    debug;
+	unsigned int  verbose;
+	unsigned int insecure;
+	unsigned int     skip;
+	unsigned int   verify;
+	char base_url[ROUND_UP(CHECKPOINT_CONFIG_URL_LEN_MAX+1, 8)];
+	char username[ROUND_UP(CHECKPOINT_CONFIG_USERNAME_LEN_MAX+1, 8)];
+	char password[ROUND_UP(CHECKPOINT_CONFIG_PASSWORD_LEN_MAX+1, 8)];
 };
 
 #endif /* __CHECK_POINT_SUCKS_H__ */
