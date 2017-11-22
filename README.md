@@ -26,8 +26,8 @@ OPTIONS
 		skip reauth if already logged in by doing precheck.
 	-v, --verbose
 		be more verbose about progress.
-	--verify
-		verify login states after login.
+	--no-verify
+		do not verify login state after login
 ```
 
 This is a very domain specific project written out
