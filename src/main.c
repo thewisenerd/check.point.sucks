@@ -16,14 +16,14 @@
 #include "check.point.sucks.h"
 
 static struct option long_opts[] = {
-	{"debug",    no_argument, NULL, 'd'},
-	{"help",     no_argument, NULL, 'h'},
-	{"insecure", no_argument, NULL, 'k'},
-	{"skip",     no_argument, NULL, 's'},
-	{"verbose",  no_argument, NULL, 'v'},
-	{"verify",   no_argument, NULL, 128},
-	{"url",      required_argument, NULL, 'b'},
-	{"password", required_argument, NULL, 'p'},
+	{"debug",	no_argument, NULL, 'd'},
+	{"help",	no_argument, NULL, 'h'},
+	{"insecure",	no_argument, NULL, 'k'},
+	{"skip",	no_argument, NULL, 's'},
+	{"verbose",	no_argument, NULL, 'v'},
+	{"no-verify",	no_argument, NULL, 128},
+	{"url",		required_argument, NULL, 'b'},
+	{"password",	required_argument, NULL, 'p'},
 	{0, 0, 0, 0},
 };
 
@@ -60,8 +60,8 @@ int usage(void)
 		"\t-v, --verbose\n"
 		"\t\tbe more verbose about progress.\n"
 
-		"\t--verify\n"
-		"\t\tverify login states after login.\n"
+		"\t--no-verify\n"
+		"\t\tdo not verify login state after login\n"
 	);
 
 	return EXIT_FAILURE;
@@ -106,6 +106,9 @@ int main (int argc, char **argv)
 	/* zero configuration */
 	memset((void *)&checkpoint_vars, 0, sizeof(struct checkpoint_vars_t));
 
+	/* defaults */
+	checkpoint_vars.verify = 1;
+
 	while ((ret = getopt_long(argc, argv, "dhksvb:p:", long_opts, &longidx)) != -1) {
 		switch(ret) {
 		case 'd':
@@ -128,7 +131,7 @@ int main (int argc, char **argv)
 			break;
 
 		case 128:
-			checkpoint_vars.verify = 1;
+			checkpoint_vars.verify = 0;
 			break;
 
 		case 'b':
