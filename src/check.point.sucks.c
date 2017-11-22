@@ -85,6 +85,8 @@ int get_rsa_settings(struct checkpoint_vars_t *vars, struct checkpoint_session_v
 	/* parse json */
 	json = json_tokener_parse_verbose(fetch.memory, &jerr);
 	if (jerr != json_tokener_success) {
+		if (vars->debug)
+			fprintf(stderr, "json-c error: %s\n", json_tokener_error_desc(jerr));
 	error_parse:
 		fputs("RSASettings decode error\n", stderr);
 		ret = -EFAULT;
@@ -248,6 +250,8 @@ int do_login(struct checkpoint_vars_t *vars, struct checkpoint_session_vars_t *s
 	/* parse JSON */
 	json = json_tokener_parse_verbose(fetch.memory, &jerr);
 	if (jerr != json_tokener_success) {
+		if (vars->debug)
+			fprintf(stderr, "json-c error: %s\n", json_tokener_error_desc(jerr));
 	error_parse:
 		fputs("Login response decode error\n", stderr);
 		ret = -EFAULT;
@@ -324,6 +328,8 @@ int is_logged_in(struct checkpoint_vars_t *vars, struct checkpoint_session_vars_
 	/* parse json */
 	json = json_tokener_parse_verbose(fetch.memory, &jerr);
 	if (jerr != json_tokener_success) {
+		if (vars->debug)
+			fprintf(stderr, "json-c error: %s\n", json_tokener_error_desc(jerr));
 	error_parse:
 		fputs("GetStateAndView decode error\n", stderr);
 		ret = -EFAULT;
