@@ -371,6 +371,9 @@ int real_main(struct checkpoint_vars_t *vars)
 		/* enable cookie engine */
 		curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
 
+		/* always set user agent */
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, CHECKPOINT_CONFIG_CURLOPT_USERAGENT);
+
 		if (vars->debug)
 			curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
